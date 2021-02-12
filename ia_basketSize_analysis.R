@@ -29,11 +29,39 @@ library(tidyverse)
 
 dat <- read_csv("results-20210212-143900.csv")
 
-head(dat)
+## adjust numbers for all possible combinations:
+# with dat as (
+#   select distinct article_a as art
+#   FROM `gcp-wow-finance-de-lab-dev.inflation.itemAssociationSummary001`
+#   union all 
+#   select distinct article_b as art
+#   FROM `gcp-wow-finance-de-lab-dev.inflation.itemAssociationSummary001`
+# )
+# select distinct art
+# from dat
+
+# 77,855 unique articles = 77855*77854/2 combinations (order doesn't matter) = 12,122,646,340 combinations
+
+allCombos <- 12122646340
+
+# adjust percentages to account for all combinations.
+dat2 <- dat %>% 
+  dplyr::mutate(sig_assoc=sig_assoc*n/(allCombos),
+                sig_basketSize_adjusted_assoc=sig_basketSize_adjusted_assoc*n/(allCombos),
+                sig_disassoc=sig_disassoc*n/(allCombos),
+                sig_basketSize_adjusted_disassoc=sig_basketSize_adjusted_disassoc*n/(allCombos),
+                sig_noAssoc=1-sig_assoc-sig_disassoc,
+                sig_basketSize_adjusted_noAssoc=1-sig_basketSize_adjusted_assoc-sig_basketSize_adjusted_disassoc,
+                n=n+allCombos)
+
+head(dat2)
 
 colors <- c("pre" = "black", "post" = "red")
 
-ggplot(dat, aes(x=rel_basketSize)) +
+# plot dat if you only want to include pairs in data. use dat2 to use all possible combinations.
+plotDat <- dat2 #dat
+
+ggplot(plotDat, aes(x=rel_basketSize)) +
   geom_point(aes(y=sig_assoc , colour="pre")) +
   geom_point(aes(y=sig_basketSize_adjusted_assoc, colour="post")) +
   geom_vline(xintercept=1) +
@@ -43,7 +71,7 @@ ggplot(dat, aes(x=rel_basketSize)) +
   scale_colour_manual(values = colors) +
   scale_y_continuous(labels=scales::percent)
 
-ggplot(dat, aes(x=rel_basketSize)) +
+ggplot(plotDat, aes(x=rel_basketSize)) +
   geom_point(aes(y=sig_disassoc , colour="pre")) +
   geom_point(aes(y=sig_basketSize_adjusted_disassoc, colour="post")) +
   geom_vline(xintercept=1) +
@@ -53,7 +81,7 @@ ggplot(dat, aes(x=rel_basketSize)) +
   scale_colour_manual(values = colors) +
   scale_y_continuous(labels=scales::percent)
 
-ggplot(dat, aes(x=rel_basketSize)) +
+ggplot(plotDat, aes(x=rel_basketSize)) +
   geom_point(aes(y=sig_noAssoc , colour="pre")) +
   geom_point(aes(y=sig_basketSize_adjusted_noAssoc, colour="post")) +
   geom_vline(xintercept=1) +
@@ -64,7 +92,12 @@ ggplot(dat, aes(x=rel_basketSize)) +
   scale_y_continuous(labels=scales::percent)
 
 # significantly over or under pre
-ggplot(dat, aes(x=rel_basketSize)) +
-  geom_point(aes(y=sig_assoc+sig_noAssoc)) +
+ggplot(plotDat, aes(x=rel_basketSize)) +
+  geom_point(aes(y=sig_assoc+sig_disassoc)) +
+  geom_vline(xintercept=1) +
+  scale_y_continuous(labels=scales::percent)
+
+ggplot(plotDat, aes(x=rel_basketSize)) +
+  geom_point(aes(y=sig_basketSize_adjusted_assoc+sig_basketSize_adjusted_disassoc)) +
   geom_vline(xintercept=1) +
   scale_y_continuous(labels=scales::percent)
