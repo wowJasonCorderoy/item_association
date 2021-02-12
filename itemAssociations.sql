@@ -148,7 +148,7 @@ from dat
 
 CREATE OR REPLACE TABLE `gcp-wow-finance-de-lab-dev.inflation.itemAssociationSummary001` as (
 with dat as (select *, 
-1- power( (1-support_b), (av_basket_size_pair/article_b_avg_basket_size) ) as basketSize_adjusted_support_b,
+1- power( (1-support_b), (av_basket_size_pair/article_b_avg_basket_size) ) as basketSize_adjusted_support_b
 from ia_ingredients
 )
 select *,
