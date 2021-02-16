@@ -137,7 +137,7 @@ a.cnt_pair/a.cnt_allBasketsInData as support_ab
 from itemAssociationSummary000 a left join
 `gcp-wow-ent-im-tbl-prod.adp_dm_masterdata_view.dim_article_v` b on (a.Article_a=b.Article) left join
 `gcp-wow-ent-im-tbl-prod.adp_dm_masterdata_view.dim_article_v` c on (a.Article_b=c.Article)
-where a.Article_a < a.Article_b -- we don't need article a,b and also article b,a in the data
+--where a.Article_a < a.Article_b -- we don't need article a,b and also article b,a in the data. considering basket size adjusted lift we can remove this filter.
 )
 select *,
 --support_ab/support_a as confidence,
