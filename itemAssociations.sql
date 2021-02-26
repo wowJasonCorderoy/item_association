@@ -1,5 +1,12 @@
-declare from_date DATE DEFAULT DATE("2019-01-01");
-declare to_date DATE DEFAULT DATE('2019-12-31');
+-- declare from_date DATE DEFAULT DATE("2019-01-01");
+-- declare to_date DATE DEFAULT DATE('2019-12-31');
+declare from_date DATE;
+declare to_date DATE;
+DECLARE so STRING;
+
+set to_date = CURRENT_DATE("Australia/Sydney");
+set from_date = DATE_ADD(to_date, INTERVAL -364 DAY);
+set so = '1005';
 
 ##
 create temp table allDat as (
@@ -17,20 +24,20 @@ a.BasketKey in (
 select distinct BasketKey
 from `gcp-wow-ent-im-tbl-prod.adp_dm_basket_sales_view.pos_item_line_detail`
 where --rand() < 0.000000001 and
-salesorg = '1005'  
+salesorg = so 
 and businessdate >= from_date
-and businessdate <= to_date 
+and businessdate < to_date 
 and itemvoidflag is null
 and ItemTXNType in  ('S201') #,'S202') --S201 sales, S202 returns.
 order by rand()
 --limit 10000000
 ) and
-a.salesorg = '1005'  
+a.salesorg = so  
 and ltrim(a.article,'0') = ltrim(b.article,'0')
-and b.salesorg = '1005'
+and b.salesorg = so
 and b. Department not in ('W100','W120')
 and businessdate >= from_date
-and businessdate <= to_date  
+and businessdate < to_date  
 and itemvoidflag is null
 and ItemTXNType in  ('S201') #,'S202') --S201 sales, S202 returns.
 ORDER BY a.BasketKey,
@@ -146,7 +153,7 @@ from dat
 );
 
 
-CREATE OR REPLACE TABLE `gcp-wow-finance-de-lab-dev.inflation.itemAssociationSummary001` as (
+CREATE OR REPLACE TABLE `gcp-wow-finance-de-lab-dev.price_elasticity.PriceElast_site_article` as (
 with dat as (select *, 
 1- power( (1-support_b), (av_basket_size_pair/article_b_avg_basket_size) ) as basketSize_adjusted_support_b
 from ia_ingredients
@@ -155,4 +162,5 @@ select *,
 support_ab/(support_a*basketSize_adjusted_support_b) as basketSize_adjusted_lift
 from dat
 );
+
 
