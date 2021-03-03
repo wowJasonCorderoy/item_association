@@ -8,6 +8,11 @@ set to_date = CURRENT_DATE("Australia/Sydney");
 set from_date = DATE_ADD(to_date, INTERVAL -364 DAY);
 set so = '1005';
 
+CREATE TEMP FUNCTION basketSizeAdjustedSupport(artSupport INT64,artAvBasketSize INT64, pairAvBasketSize INT64) AS (
+1- power( (1-artSupport), (pairAvBasketSize/artAvBasketSize) ) 
+);
+
+
 ##
 create temp table allDat as (
 with dat as (
@@ -153,14 +158,15 @@ from dat
 );
 
 
-CREATE OR REPLACE TABLE `gcp-wow-finance-de-lab-dev.price_elasticity.itemAssociationPairs` as (
+CREATE OR REPLACE TABLE  `gcp-wow-finance-de-lab-dev.price_elasticity.itemAssociationPairs` as (
 with dat as (select *, 
-1- power( (1-support_b), (av_basket_size_pair/article_b_avg_basket_size) ) as basketSize_adjusted_support_b
+--1- power( (1-support_b), (av_basket_size_pair/article_b_avg_basket_size) ) as basketSize_adjusted_support_b
+basketSizeAdjustedSupport(support_a, article_a_avg_basket_size, av_basket_size_pair) as basketSize_adjusted_support_a,
+basketSizeAdjustedSupport(support_b, article_b_avg_basket_size, av_basket_size_pair) as basketSize_adjusted_support_b
 from ia_ingredients
 )
 select *,
-support_ab/(support_a*basketSize_adjusted_support_b) as basketSize_adjusted_lift
+--support_ab/(support_a*basketSize_adjusted_support_b) as basketSize_adjusted_lift
+support_ab/(basketSize_adjusted_support_a*basketSize_adjusted_support_b) as basketSize_adjusted_lift
 from dat
 );
-
-
